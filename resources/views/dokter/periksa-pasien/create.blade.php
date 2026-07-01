@@ -28,10 +28,13 @@
                     <select id="select-obat" class="select select-bordered w-full rounded-lg border-2 px-4">
                         <option value="">-- Pilih Obat --</option>
                         @foreach ($obats as $obat)
+                            {{-- TAMBAHAN: Atribut data-stok ditambahkan di sini --}}
                             <option value="{{ $obat->id }}"
                                 data-nama="{{ $obat->nama_obat }}"
-                                data-harga="{{ $obat->harga }}">
-                                {{ $obat->nama_obat }} - Rp{{ number_format($obat->harga) }}
+                                data-harga="{{ $obat->harga }}"
+                                data-stok="{{ $obat->stok }}"> 
+                                {{ $obat->nama_obat }} - Rp{{ number_format($obat->harga) }} 
+                                (Stok: {{ $obat->stok }})
                             </option>
                         @endforeach
                     </select>
@@ -86,6 +89,24 @@
         </div>
     </div>
 
+    {{-- TAMBAHAN: Pop-up Notifikasi (Toast) --}}
+    <div id="stok-warning-toast" class="hidden fixed top-5 right-5 z-[99] max-w-sm w-full bg-amber-50 border border-amber-200 rounded-xl p-4 shadow-lg transition-all duration-300 transform translate-y-2 opacity-0">
+        <div class="flex items-start gap-3">
+            <div class="text-amber-500 mt-0.5">
+                <i class="fas fa-exclamation-triangle text-lg"></i>
+            </div>
+            <div class="flex-1">
+                <h3 class="text-sm font-semibold text-amber-800">Peringatan Stok!</h3>
+                <p id="toast-message" class="text-xs text-amber-700 mt-1">
+                    Stok obat menipis.
+                </p>
+            </div>
+            <button onclick="closeToast()" class="text-amber-400 hover:text-amber-600 transition">
+                <i class="fas fa-times text-sm mt-1"></i>
+            </button>
+        </div>
+    </div>
+
     <script>
         const selectObat = document.getElementById('select-obat');
         const listObat = document.getElementById('obat-terpilih');
@@ -100,8 +121,16 @@
             const id = selectedOption.value;
             const nama = selectedOption.dataset.nama;
             const harga = parseInt(selectedOption.dataset.harga || 0);
+            
+            // Ambil data stok (TAMBAHAN)
+            const stok = parseInt(selectedOption.dataset.stok || 0);
 
             if (!id || daftarObat.some(o => o.id == id)) return;
+
+            // Trigger Pop-up Toast jika stok menipis (< 5) tapi tidak habis (> 0) (TAMBAHAN)
+            if (stok > 0 && stok < 5) {
+                showToast(`Stok obat "${nama}" hanya tersisa ${stok}!`);
+            }
 
             daftarObat.push({ id, nama, harga });
             renderObat();
@@ -136,6 +165,36 @@
         function hapusObat(index) {
             daftarObat.splice(index, 1);
             renderObat();
+        }
+
+        // TAMBAHAN: Fungsi untuk menampilkan dan menyembunyikan Toast
+        let toastTimeout;
+        function showToast(message) {
+            const toast = document.getElementById('stok-warning-toast');
+            const toastMsg = document.getElementById('toast-message');
+            
+            toastMsg.innerText = message;
+            
+            // Tampilkan
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+                toast.classList.add('translate-y-0', 'opacity-100');
+            }, 10);
+
+            // Bersihkan timer lama jika ada, lalu set penutupan otomatis (5 detik)
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(closeToast, 5000);
+        }
+
+        function closeToast() {
+            const toast = document.getElementById('stok-warning-toast');
+            toast.classList.remove('translate-y-0', 'opacity-100');
+            toast.classList.add('translate-y-2', 'opacity-0');
+            
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 300);
         }
     </script>
 

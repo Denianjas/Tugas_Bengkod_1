@@ -42,6 +42,22 @@ class PeriksaPasienController extends Controller
 
         $obatIds = json_decode($request->obat_json, true);
 
+        // ==========================================================
+        // 1. VALIDASI STOK OBAT HABIS
+        // ==========================================================
+        if (is_array($obatIds) && count($obatIds) > 0) {
+            foreach ($obatIds as $idObat) {
+                $obat = Obat::find($idObat);
+                if ($obat && $obat->stok <= 0) {
+                    // Batalkan proses jika ada obat yang stoknya habis
+                    return redirect()->back()
+                        ->withInput()
+                        ->with('error', 'Gagal menyimpan resep! Stok obat "' . $obat->nama_obat . '" sudah habis.');
+                }
+            }
+        }
+
+        // Jika semua stok aman, lanjut simpan data periksa
         $periksa = Periksa::create([
             'id_daftar_poli' => $request->id_daftar_poli,
             'tgl_periksa' => now(),
@@ -54,6 +70,14 @@ class PeriksaPasienController extends Controller
                 'id_periksa' => $periksa->id,
                 'id_obat' => $idObat,
             ]);
+
+            // ==========================================================
+            // 2. PENGURANGAN STOK OTOMATIS
+            // ==========================================================
+            $obat = Obat::find($idObat);
+            if ($obat) {
+                $obat->decrement('stok', 1); // Mengurangi kolom stok sebanyak 1
+            }
         }
 
         return redirect()->route('periksa-pasien.index')->with('success', 'Data periksa berhasil disimpan.');

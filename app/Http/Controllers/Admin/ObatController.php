@@ -19,18 +19,21 @@ class ObatController extends Controller
         return view('admin.obat.create');
     }
 
+    // Ini fungsi store yang sebelumnya hilang
     public function store(Request $request)
     {
         $request->validate([
-            'nama_obat' => 'required|string',
+            'nama_obat' => 'required|string|max:255',
             'kemasan' => 'required|string',
-            'harga' => 'required|integer',
+            'harga' => 'required|numeric',
+            'stok' => 'required|integer|min:0', // Validasi stok
         ]);
 
         Obat::create([
             'nama_obat' => $request->nama_obat,
             'kemasan' => $request->kemasan,
-            'harga' => $request->harga
+            'harga' => $request->harga,
+            'stok' => $request->stok // Simpan stok ke database
         ]);
 
         return redirect()->route('obat.index')
@@ -52,13 +55,15 @@ class ObatController extends Controller
             'nama_obat' => 'required|string',
             'kemasan' => 'nullable|string',
             'harga' => 'required|integer',
+            'stok' => 'required|integer|min:0', // Validasi stok saat edit
         ]);
 
         $obat = Obat::findOrFail($id);
         $obat->update([
             'nama_obat' => $request->nama_obat,
             'kemasan' => $request->kemasan,
-            'harga' => $request->harga
+            'harga' => $request->harga,
+            'stok' => $request->stok // Update stok ke database
         ]);
 
         return redirect()->route('obat.index')

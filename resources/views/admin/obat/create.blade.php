@@ -74,6 +74,20 @@
                     @enderror
                 </div>
 
+                                        <div class="mb-4">
+                            <label for="stok" class="block text-sm font-semibold text-slate-700 mb-2">
+                                Stok Obat
+                            </label>
+                            <input type="number" name="stok" id="stok" value="{{ old('stok', 0) }}" 
+                                class="w-full px-4 py-2.5 border border-slate-200 rounded-xl 
+                                        focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary
+                                        text-sm text-slate-800" 
+                                min="0" placeholder="Masukkan jumlah stok awal" required>
+                            @error('stok')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
                 {{-- Buttons --}}
                 <div class="flex gap-3">
                     <button type="submit" class="px-6 py-2.5 rounded-xl bg-primary 
